@@ -1,20 +1,35 @@
+from threading import Thread
 import socket
 
-port = int(raw_input("Port Number: "))
-outputFile = raw_input("Output File: ")
-outputFile = open(outputFile,"r")
-outputText = outputFile.read().split("\n\n")
-outputFile.close()
+def getPort():
+    return int(raw_input("Port Number: "))
 
-c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-c.bind(('0.0.0.0',port))
-c.listen(1)
+def getOutput():
+    fileName = raw_input("Output File: ")
+    fileState = open(fileName,"r")
+    fileContent = fileState.read().split("\n\n")
+    fileState.close()
+    return fileContent
 
-print "BasicHoney running on port {}".format(str(port))
+def getSocket():
+    c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    c.bind(('0.0.0.0',port))
+    c.listen(1)
+    return c
 
-while 1:
-    csock, caddr = c.accept()
-    cfile = csock.makefile('rw', 0)
-    for output in outputText:
-        cfile.write(output+"\n")
+def session(cfile):
+    for line in output:
+        cfile.write(line+"\n")
         print cfile.readline().strip()
+
+if __name__ == "__main__":
+    port = getPort()
+    output = getOutput()
+    connection = getSocket()
+
+    print "\nBasicHoney running on port {}\n".format(str(port))
+
+    while 1:
+        csock, caddr = connection.accept()
+        cfile = csock.makefile('rw', 0)
+        Thread(target=session,args=(cfile,)).start()
