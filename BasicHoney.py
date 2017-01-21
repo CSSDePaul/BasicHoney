@@ -1,35 +1,36 @@
 from threading import Thread
 import socket
 
-def getPort():
-    return int(raw_input("Port Number: "))
+def fileToList(fName,delimiter):
+    fState = open(fName,"r")
+    fContent = fState.read().split(delimiter)
+    fContent = [block.strip() for block in fContent]
+    fState.close()
+    return fContent
 
-def getOutput():
-    fileName = raw_input("Output File: ")
-    fileState = open(fileName,"r")
-    fileContent = fileState.read().split("\n\n")
-    fileState.close()
-    return fileContent
-
-def getSocket():
-    c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    c.bind(('0.0.0.0',port))
+def getSocket(port):
+    c = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    c.bind(("0.0.0.0",int(port)))
     c.listen(1)
     return c
 
-def session(cfile):
-    for line in output:
-        cfile.write(line+"\n")
-        print cfile.readline().strip()
+def session(cfile,output):
+    for block in output:
+        block = block.replace("\n","\r\n")
+        cfile.write(block+"\r\n")
+        cfile.readline()
+
+def startHoney(port,fName,delimiter):
+    listener = getSocket(port)
+    output = fileToList(fName,delimiter)
+    print "\nBasicHoney running on port {}\n".format(port)
+    while 1:
+        csock,caddr = listener.accept()
+        cfile = csock.makefile("rw",0)
+        Thread(target=session,args=(cfile,output)).start()
 
 if __name__ == "__main__":
-    port = getPort()
-    output = getOutput()
-    connection = getSocket()
-
-    print "\nBasicHoney running on port {}\n".format(str(port))
-
-    while 1:
-        csock, caddr = connection.accept()
-        cfile = csock.makefile('rw', 0)
-        Thread(target=session,args=(cfile,)).start()
+    port = raw_input("Port: ")
+    fName = raw_input("Filename: ")
+    delimiter = raw_input("Delimiter: ")
+    startHoney(port,fName,delimiter)
