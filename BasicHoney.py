@@ -3,7 +3,7 @@ import socket
 
 def fileToList(fName,delimiter):
     fState = open(fName,"r")
-    fContent = fState.read().split(delimiter)
+    fContent = fState.read().replace("\n","\r\n").split(delimiter)
     fContent = [block.strip() for block in fContent]
     fState.close()
     return fContent
@@ -16,7 +16,6 @@ def getSocket(port):
 
 def session(cfile,output):
     for block in output:
-        block = block.replace("\n","\r\n")
         cfile.write(block+"\r\n")
         cfile.readline()
 
